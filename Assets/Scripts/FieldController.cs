@@ -17,10 +17,17 @@ public class FieldController : MonoBehaviour {
     public static int[,] cellOfCode = new int[3,3];
     public int[] sumOfRow = new int[3];
     public int[] sumOfColumn = new int[3];
-    public int[] sumOfDiagonal = new int[3];
+    public int sumOfDiagonal;
     public static bool playerTurn = true;
-    public int maxColumn;
-    public int maxRow;
+    public int xIndexOfCollumn;
+    public int yIndexOfCollumn;
+    public int xIndexOfRow;
+    public int yIndexOfRow;
+    public int xindexOfDiagonal;
+    public int yIndexOfDiagonal;
+    public bool flagRow = false;
+    public bool flagColumn = false;
+    public bool flagDiagonal = false;
 
 
     public Sprite O
@@ -101,76 +108,132 @@ public class FieldController : MonoBehaviour {
         }
     }
 
-    public int MachineTurn()
+    public void MachineTurn()
     {
         CheckRow(playerTurn);
         CheckColomn(playerTurn);
-        CheckDiagonal(playerTurn);
+        CheckMainDiagonal(playerTurn);
+        var rowPair = CheckRow(playerTurn);
+        var colmnPair = CheckColomn(playerTurn);
+        var diagMainPair = CheckMainDiagonal(playerTurn);
+        if (cellOfCode[rowPair.Key, rowPair.Value] != 1)
+        {
+            cellOfCode[rowPair.Key, rowPair.Value] = 2;
+        }
+        if (cellOfCode[colmnPair.Key, colmnPair.Value] != 1)
+        {
+            cellOfCode[colmnPair.Key, colmnPair.Value] = 2;
+        }
+        if (cellOfCode[diagMainPair.Key, diagMainPair.Value] != 1)
+        {
+            cellOfCode[diagMainPair.Key, diagMainPair.Value] = 2;
+        }
 
-        playerTurn = true;
-        return 0;
-        
+
+        playerTurn = true;        
         
     }
-
-    private void CheckRow(bool checkPlayer) //true = player, false = machine
+    
+    /**
+     * @return 1 element - X, 2 element - Y of position when you must put 
+     */
+    private KeyValuePair<int, int> CheckRow(bool checkPlayer) //true = player, false = machine
     {
-        maxRow = sumOfRow[0];
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-                sumOfRow[i] += cellOfCode[i, j];
+                if (cellOfCode[i, j] == 1)
+                {
+                    sumOfRow[i] += 1;
+                    if (sumOfRow[i] == 2)
+                    {
+                        xIndexOfRow = Array.IndexOf(sumOfRow, 2);
+                        flagRow = true;
+                        Debug.Log("i found this on "+ xIndexOfRow + " row");
+                    }
+                    
+                }
+                
             }
-            if (sumOfRow[i] > maxRow)
-            {
-                maxRow = sumOfRow[i];
-            }
-            
-            Debug.Log("Сума эллементов " + (i+1) + " строки = " + sumOfRow[i] + "");
-            
-        }
-
-        int index = Array.IndexOf(sumOfRow, maxRow);
-        Debug.Log(index);
-        for (int i = 0; i < 3; i++)
-        {
+            // Debug.Log("В строке " + (i+1) + "количество Х = " + sumOfRow[i] + "");
             sumOfRow[i] = 0;
         }
-
-
-
+        if (flagRow)
+        {
+            for (int k = 0; k < 3; k++)
+            {
+                if (cellOfCode[xIndexOfRow, k] == 0)
+                {
+                    yIndexOfRow = k;
+                    Debug.Log("X:Y = " + xIndexOfRow + ":" + yIndexOfRow + "");
+                }
+                else  Debug.Log("NOT FOUND"); 
+            }
+        }
+        
+        //Debug.Log("X:Y = " + xIndexOfCollumn + ":" + yIndexOfCollumn + "");
+        return new KeyValuePair<int, int>(xIndexOfRow, yIndexOfRow); 
     }
-    private void CheckColomn(bool checkPlayer) 
+    private KeyValuePair<int, int> CheckColomn(bool checkPlayer) 
     {
-        maxColumn = sumOfColumn[0];
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-                sumOfColumn[i] += cellOfCode[j, i];
+                if (cellOfCode[j, i] == 1)
+                {
+                    sumOfColumn[i] += 1;
+                    if (sumOfColumn[i] == 2)
+                    {
+                        yIndexOfCollumn = Array.IndexOf(sumOfColumn, 2);
+                        flagColumn = true;
+                    }
+                }
             }
-            
-            
-            Debug.Log("Сума эллементов " + (i + 1) + " столбца = " + sumOfColumn[i] + "");
+          //  Debug.Log("В столбце " + (i + 1) + " Количество Х = " + sumOfColumn[i] + "");
             sumOfColumn[i] = 0;
         }
-        Debug.Log("COLUMNMAX=" + maxColumn + "");
-    }
-    private void CheckDiagonal(bool checkPlayer) //true = player, false = machine
-    {
-        int maxDiagonal = sumOfDiagonal[0];
-        for (int i = 0; i < 3; i++)
+
+        if (flagColumn)
         {
-            sumOfDiagonal[i] = cellOfCode[i, i];
-            if (sumOfDiagonal[i] > maxDiagonal)
+            for (int k = 0; k < 3; k++)
             {
-                maxDiagonal = sumOfDiagonal[i];
+                if (cellOfCode[k, yIndexOfCollumn] == 0)
+                {
+                    xIndexOfCollumn = k;
+                    Debug.Log("X:Y = " + xIndexOfCollumn + ":" + yIndexOfCollumn + "");
+                }
+                else Debug.Log("Not Found");
             }
         }
-        int index = Array.IndexOf(sumOfDiagonal, maxDiagonal);
-        Debug.Log("DIAGONAL = "+index+"");
 
+        return new KeyValuePair<int, int>(xIndexOfCollumn, yIndexOfCollumn);
+    }
+    private KeyValuePair<int, int> CheckMainDiagonal(bool checkPlayer) //true = player, false = machine
+    {
+        
+        for (int i = 0; i < 3; i++)
+        {
+            if (cellOfCode[i, i] == 1)
+            {
+                sumOfDiagonal += 1;
+                if (sumOfDiagonal == 2)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        if (cellOfCode[j, j] == 0)
+                        {
+                            xindexOfDiagonal = yIndexOfDiagonal = j;
+                            Debug.Log("X:Y = " + xindexOfDiagonal + ":" + yIndexOfDiagonal + "");
+                        }
+                        else Debug.Log("EMPTY");
+                    }
+                }
+                
+            }
+        }
+        return new KeyValuePair<int, int>(xindexOfDiagonal, yIndexOfDiagonal);
     }
 
 
