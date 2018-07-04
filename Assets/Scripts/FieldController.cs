@@ -13,11 +13,11 @@ public class FieldController : MonoBehaviour {
 
     [SerializeField]
     private Sprite _o;
-
     public static int[,] cellOfCode = new int[3,3];
     public int[] sumOfRow = new int[3];
     public int[] sumOfColumn = new int[3];
     public int sumOfDiagonal;
+    public int sumOfSideDiagonal;
     public static bool playerTurn = true;
     public int xIndexOfCollumn;
     public int yIndexOfCollumn;
@@ -25,10 +25,12 @@ public class FieldController : MonoBehaviour {
     public int yIndexOfRow;
     public int xindexOfDiagonal;
     public int yIndexOfDiagonal;
+    public int xindexOfSideDiagonal;
+    public int yindexOfSideDiagonal;
     public bool flagRow = false;
     public bool flagColumn = false;
     public bool flagDiagonal = false;
-
+    public bool isMachineMadeTurn = false;
 
     public Sprite O
     {
@@ -110,30 +112,39 @@ public class FieldController : MonoBehaviour {
 
     public void MachineTurn()
     {
-        CheckRow(playerTurn);
-        CheckColomn(playerTurn);
-        CheckMainDiagonal(playerTurn);
-        var rowPair = CheckRow(playerTurn);
-        var colmnPair = CheckColomn(playerTurn);
-        var diagMainPair = CheckMainDiagonal(playerTurn);
-        if (cellOfCode[rowPair.Key, rowPair.Value] != 1)
+        if (cellOfCode[1, 1] == 0)
         {
-            cellOfCode[rowPair.Key, rowPair.Value] = 2;
+            cellOfCode[1, 1] = 2;
+            playerTurn = true;
         }
-        if (cellOfCode[colmnPair.Key, colmnPair.Value] != 1)
+        else
         {
-            cellOfCode[colmnPair.Key, colmnPair.Value] = 2;
-        }
-        if (cellOfCode[diagMainPair.Key, diagMainPair.Value] != 1)
-        {
-            cellOfCode[diagMainPair.Key, diagMainPair.Value] = 2;
-        }
-
-
-        playerTurn = true;        
-        
+            isMachineMadeTurn = false;
+            var rowPair = CheckRow(playerTurn);
+            var colmnPair = CheckColomn(playerTurn);
+            var diagMainPair = CheckMainDiagonal(playerTurn);
+            var diagSidePair = CheckSideDiagonal(playerTurn);
+            Debug.Log("MachinTURN = " + isMachineMadeTurn + "");
+            BlockOnEachLine(rowPair.Key, rowPair.Value);
+            BlockOnEachLine(colmnPair.Key, colmnPair.Value);
+            BlockOnEachLine(diagMainPair.Key, diagMainPair.Value);
+            BlockOnEachLine(diagSidePair.Key, diagSidePair.Value);
+            playerTurn = true;
+        } 
+                  
     }
+
     
+
+    public void BlockOnEachLine(int x, int y)
+    {
+        if (cellOfCode[x, y] == 0 && !isMachineMadeTurn)
+        {
+            cellOfCode[x, y] = 2;
+            Debug.Log("I made my turn");
+            isMachineMadeTurn = true;
+        }
+    }
     /**
      * @return 1 element - X, 2 element - Y of position when you must put 
      */
@@ -212,12 +223,12 @@ public class FieldController : MonoBehaviour {
     }
     private KeyValuePair<int, int> CheckMainDiagonal(bool checkPlayer) //true = player, false = machine
     {
-        
+        sumOfDiagonal = 0;
         for (int i = 0; i < 3; i++)
         {
             if (cellOfCode[i, i] == 1)
             {
-                sumOfDiagonal += 1;
+                sumOfDiagonal ++;
                 if (sumOfDiagonal == 2)
                 {
                     for (int j = 0; j < 3; j++)
@@ -234,6 +245,32 @@ public class FieldController : MonoBehaviour {
             }
         }
         return new KeyValuePair<int, int>(xindexOfDiagonal, yIndexOfDiagonal);
+    }
+    private KeyValuePair<int, int> CheckSideDiagonal(bool checkPlayer)
+    {
+        sumOfSideDiagonal = 0;
+        int k = 2;
+        for (int i = 0; i <= k; i++)
+        {
+            if (cellOfCode[i, k - i] == 1)
+            {
+                sumOfSideDiagonal++;
+                if (sumOfSideDiagonal == 2)
+                {
+                    for (int j = 0; j <= k; j++)
+                    {
+                        if (cellOfCode[j, k - j] == 0)
+                        {
+                            xindexOfSideDiagonal = j;
+                            yindexOfSideDiagonal = k - j;
+                            return new KeyValuePair<int, int>(xindexOfSideDiagonal, yindexOfSideDiagonal);
+                        }
+                    }
+                }
+            }
+
+        }
+        return new KeyValuePair<int, int>(xindexOfSideDiagonal, yindexOfSideDiagonal);
     }
 
 
