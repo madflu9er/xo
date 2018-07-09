@@ -15,12 +15,10 @@ public class CellClick : MonoBehaviour{
             Game game = Game.instance;
             string name = gameObject.tag;
             int x = int.Parse(name);
-            if (field._binarField[x / 3, x % 3] != 1 && field._binarField[x / 3, x % 3] != 2)
+            if (!!game.playerTurn && field._binarField[x / 3, x % 3] != 1 && field._binarField[x / 3, x % 3] != 2)
             {
                 field._binarField[x / 3, x % 3] = 1;
-                game.PlayerTurn = false;
-                Debug.Log(game.PlayerTurn);
-                Debug.Log("i was cliced" + name + "");
+                game.playerTurn = false;
             }
             
         }

@@ -4,24 +4,14 @@ using UnityEngine;
 
 public class Game : MonoBehaviour {
 
+    [SerializeField]
     private BotLogic _botLogic;
+    [SerializeField]
     private Field _field;
-    private bool playerTurn;
     public static Game instance = null;
-    public bool PlayerTurn
-    {
-        get
-        {
-            return playerTurn;
-        }
+    public bool playerTurn = true;
 
-        set
-        {
-            playerTurn = value;
-        }
-    }
-
-     void Awake()
+    void Awake()
     {
         if (instance == null)
         {
@@ -29,8 +19,7 @@ public class Game : MonoBehaviour {
         }
         else if (instance != this)
             Destroy(gameObject);
-        _botLogic = new BotLogic();
-        PlayerTurn = true;
+        playerTurn = true;
         
     }
     // Use this for initialization
@@ -41,9 +30,9 @@ public class Game : MonoBehaviour {
     private void RenderField()
     {
         _field.ChechTheField();
-        if (!PlayerTurn)
+        if (!playerTurn)
         {
-            // _botLogic.MachineTurn();
+            _botLogic.MachineTurn();
             Debug.Log("MashineTURN!!!!");
         }
     }
