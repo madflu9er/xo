@@ -13,15 +13,6 @@ public class BotLogic : MonoBehaviour{
 
     Game game = Game.instance;
     
-    private bool isMachineMadeTurn;
-    private int rowWeight;
-    private int collumnWeight;
-    private int mainDiagonalWeight;
-    private int auxiliaryDiagonalWeight;
-    private int index;
-
-
-
     private void Awake()
     {
         if (instanse == null)
@@ -40,60 +31,19 @@ public class BotLogic : MonoBehaviour{
     {
         if (!game.playerTurn)
         {
-            XYWeight row = new XYWeight(CheckRow().Key, CheckRow().Value, rowWeight);
-            XYWeight column = new XYWeight(CheckColomn().Key, CheckColomn().Value, collumnWeight);
-            XYWeight mainDiagonal = new XYWeight(CheckMainDiagonal().Key, CheckMainDiagonal().Value, mainDiagonalWeight);
-            XYWeight auxiliaryDiagonal = new XYWeight(CheckAuxiliaryDiagonal().Key, CheckAuxiliaryDiagonal().Value, auxiliaryDiagonalWeight);
-            Debug.Log("INDEX = " + index + "");
-            if (field._binarField[1, 1] == 1 || field._binarField[1, 1] == 2)
+
+            if (field._binarField[1, 1] != 0)
             {
-                index = GetTheMaxChoiseWeight(row.weightValue, column.weightValue, mainDiagonal.weightValue, auxiliaryDiagonal.weightValue);
-                if (index < 4)
-                {
-                    switch (index)
-                    {
-                        case 0:
-                            PaintO(row.xCoord, row.yCoord);
-                            Debug.Log("" + row.xCoord + ":" + row.yCoord + "");
-                            break;
-                        case 1:
-                            PaintO(column.xCoord, column.yCoord);
-                            Debug.Log(""+column.xCoord+":"+ column.yCoord +"");
-                            break;
-                        case 2:
-                            PaintO(mainDiagonal.xCoord, mainDiagonal.yCoord);
-                            Debug.Log("" + mainDiagonal.xCoord + ":" + mainDiagonal.yCoord + "");
-                            break;
-                        case 3:
-                            PaintO(auxiliaryDiagonal.xCoord, auxiliaryDiagonal.yCoord);
-                            Debug.Log("" + auxiliaryDiagonal.xCoord + ":" + auxiliaryDiagonal.yCoord + "");
-                            break;
-                    }
-                }
-                else MakeARandomChoise();
+                XYWeight theXYCoordForTurn = getMaxWeightXYWeight(CheckRow(), CheckColomn());
+                PaintO(theXYCoordForTurn.xCoord, theXYCoordForTurn.yCoord);
             }
             else
             {
-                field._binarField[1, 1] = 2;
-                game.playerTurn = true;
+                PaintO(1, 1);
             }
         }
     }
 
-    public void MakeARandomChoise()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if (field._binarField[i, j] == 0 && game.playerTurn == true)
-                {
-                    PaintO(i, j);
-                    break;
-                }
-            }
-        }
-    }
 
     public void PaintO(int x, int y)
     {
@@ -104,40 +54,7 @@ public class BotLogic : MonoBehaviour{
             game.playerTurn = true;
         }
     }
-    public int CheckTheSumOFWeight(int w1, int w2, int w3, int w4)
-    {
-        int sum = w1 + w2 + w3 + w4;
-        return sum;
-    }
-    public int GetTheMaxChoiseWeight(int weight1, int weight2, int weight3, int weight4)
-    {
-        int max = 0, sumOfWeight = 0;
-        int[] weight = new int[4];
-        weight[0] = weight1;
-        weight[1] = weight2;
-        weight[2] = weight3;
-        weight[3] = weight4;
-        max = weight[0];
-        sumOfWeight = CheckTheSumOFWeight(weight[0], weight[1], weight[2], weight[3]);
-        if (sumOfWeight > 0)
-        {
-            for (int i = 1; i < 4; i++)
-            {
-                if (weight[i] >= max)
-                {
-                    max = weight[i];
-                }
-            }
-            int index = Array.LastIndexOf(weight, max);
-            return index;
-        }
-        else
-        {
-            return 5;
-        }
-        
 
-    }
     public struct XYWeight
     {
         public int xCoord, yCoord, weightValue;
@@ -147,164 +64,88 @@ public class BotLogic : MonoBehaviour{
             yCoord = y;
             weightValue = weight;
         }
+
+        
     }
 
-    private KeyValuePair<int, int> CheckRow() 
-    {
-        rowWeight = 0;
-        bool flagRow = false;
-        int xIndex = 0, yIndex = 0;
-        int[] sumOfRow = new int[3];
+    private XYWeight CheckRow()
+    { 
+        int sumOfStepsX, sumOfStepsO;
+        XYWeight RowXYWeight = new XYWeight();
         for (int i = 0; i < 3; i++)
-        {
+        { 
+            sumOfStepsX = 0; sumOfStepsO = 0;
             for (int j = 0; j < 3; j++)
             {
                 if (field._binarField[i, j] == 1)
                 {
-                    sumOfRow[i] += 1;
-                    if (sumOfRow[i] == 2)
-                    {
-                        rowWeight = sumOfRow[i];
-                        xIndex = Array.IndexOf(sumOfRow, 2);
-                        flagRow = true;
-                    }
-
+                    sumOfStepsX++;
                 }
-
+                else if (field._binarField[i, j] == 2)
+                {
+                    sumOfStepsO++;
+                }
             }
-            sumOfRow[i] = 0;
+            if (sumOfStepsX + sumOfStepsO < 3 && sumOfStepsX > RowXYWeight.weightValue)
+            {
+                RowXYWeight.weightValue = sumOfStepsX;
+                RowXYWeight.xCoord = i;
+            }
         }
-        yIndex = GetTheYPosition(xIndex, flagRow);
-        if (field._binarField[xIndex, yIndex] != 2)
-        {
-            return new KeyValuePair<int, int>(xIndex, yIndex);
-        }
-        else rowWeight = 0;
-        return new KeyValuePair<int, int>(0, 0);
-
+        RowXYWeight.yCoord = GetTheYPosition(RowXYWeight.xCoord);
+        return RowXYWeight;
     }
 
-    private KeyValuePair<int, int> CheckColomn()
-    {
-        collumnWeight = 0;
-        bool flagColumn = false;
-        int xIndex = 0, yIndex = 0;
-        int[] sumOfColumn = new int[3];
+    private XYWeight CheckColomn()
+    { 
+        int sumOfStepsX, sumOfStepsO;
+        XYWeight ColumnXYWeight = new XYWeight(0, 0 ,0);
         for (int i = 0; i < 3; i++)
-        {
+        { 
+            sumOfStepsX = 0;
+            sumOfStepsO = 0;
             for (int j = 0; j < 3; j++)
             {
                 if (field._binarField[j, i] == 1)
                 {
-                    sumOfColumn[i] += 1;
-                    if (sumOfColumn[i] == 2)
-                    {
-                        collumnWeight = sumOfColumn[i];
-                        yIndex= Array.IndexOf(sumOfColumn, 2);
-                        flagColumn = true;
-                    }
+                    sumOfStepsX++;
+                }
+                else if (field._binarField[j, i] == 2)
+                {
+                    sumOfStepsO++;
                 }
             }
-            sumOfColumn[i] = 0;
+            if (sumOfStepsX > ColumnXYWeight.weightValue && sumOfStepsX + sumOfStepsO < 3)
+            {
+                ColumnXYWeight.weightValue = sumOfStepsX;
+                ColumnXYWeight.yCoord = i;
+            }
+           
         }
-        xIndex = GetTheXPosition(yIndex, flagColumn);
-        if (field._binarField[xIndex, yIndex] != 2)
-        {
-            return new KeyValuePair<int, int>(xIndex, yIndex);
-        }
-        else
-        {
-            collumnWeight = 0;
-            return new KeyValuePair<int, int>(0, 0);
-        }
+        ColumnXYWeight.xCoord = GetTheXPosition(ColumnXYWeight.yCoord);
+        return ColumnXYWeight;
         
     }
 
-    private KeyValuePair<int, int> CheckMainDiagonal()
-    {
-        mainDiagonalWeight = 0;
-        int xIndex = 0, yIndex = 0, sumOfMainDiagonal = 0;
-        for (int i = 0; i < 3; i++)
-        {
-            if (field._binarField[i, i] == 1)
-            {
-                sumOfMainDiagonal++;
-                if (sumOfMainDiagonal == 2)
-                {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        if (field._binarField[j, j] == 0)
-                        {
-                            xIndex = yIndex = j;
-                            mainDiagonalWeight = sumOfMainDiagonal;
-                            return new KeyValuePair<int, int>(xIndex, yIndex);
-                        }
-                        else
-                        {
-                            mainDiagonalWeight = 0;
-                        }
-                    }
-                }
 
-            }
-        }
-        return new KeyValuePair<int, int>(0, 0);
-    }
-
-    private KeyValuePair<int, int> CheckAuxiliaryDiagonal()
-    {
-        auxiliaryDiagonalWeight = 0;
-        int xIndex = 0, yIndex = 0, sumOfAuxiliaryDiagonal = 0;
-        int k = 2;
-        for (int i = 0; i <= k; i++)
-        {
-            if (field._binarField[i, k - i] == 1)
-            {
-                sumOfAuxiliaryDiagonal++;
-                if (sumOfAuxiliaryDiagonal == 2)
-                {
-                    for (int j = 0; j <= k; j++)
-                    {
-                        if (field._binarField[j, k - j] == 0)
-                        {
-                            xIndex = j;
-                            yIndex = k - j;
-                            auxiliaryDiagonalWeight = sumOfAuxiliaryDiagonal;
-                            return new KeyValuePair<int, int>(xIndex, yIndex);
-                        }
-                        else
-                        {
-                            auxiliaryDiagonalWeight = 0;
-                        }
-                    }
-                }
-            }
-
-        }
-        return new KeyValuePair<int, int>(0, 0);
-    }
-
-    public int GetTheXPosition(int y, bool flagColumn)
+    public int GetTheXPosition(int y)
     {
         int xIndex;
-        if (flagColumn)
-        {
             for (int k = 0; k < 3; k++)
+        {
+            if (field._binarField[k, y] == 0)
             {
-                if (field._binarField[k, y] == 0)
-                {
-                    xIndex = k;
-                    return xIndex;
-                }
+                xIndex = k;
+                return xIndex;
             }
         }
         return 0;
     }
-    public int GetTheYPosition(int x, bool flagRow)
+
+    public int GetTheYPosition(int x)
     {
         int yIndex;
-        if (flagRow)
-        {
+        
             for (int k = 0; k < 3; k++)
             {
                 if (field._binarField[x, k] == 0)
@@ -313,9 +154,21 @@ public class BotLogic : MonoBehaviour{
                     return yIndex;
                 }
             }
-        }
         return 0;
     }
 
-
+    private XYWeight getMaxWeightXYWeight(XYWeight row, XYWeight column/*, XYWeight diagonal, XYWeight supportDiagonal*/) {
+        XYWeight max;
+        max = row;
+        if (max.weightValue < column.weightValue) {
+            max = column;
+        }
+        //if (max.weightValue < diagonal.weightValue) {
+        //    max = diagonal;
+        //}
+        //if (max.weightValue < supportDiagonal.weightValue) {
+        //    max = supportDiagonal;
+        //}
+        return max;
+    }
 }

@@ -33,7 +33,6 @@ public class Game : MonoBehaviour {
         if (!playerTurn)
         {
             _botLogic.MachineTurn();
-            Debug.Log("MashineTURN!!!!");
         }
     }
 
