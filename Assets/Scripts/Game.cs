@@ -20,11 +20,11 @@ public class Game : MonoBehaviour {
         else if (instance != this)
             Destroy(gameObject);
         playerTurn = true;
-        
     }
-    // Use this for initialization
-    void Start () {
-        InvokeRepeating("RenderField", 0f, 0.5f); 
+
+    void Start ()
+    {
+        InvokeRepeating("RenderField", 0f, 0.2f); 
 	}
 
     private void RenderField()

@@ -23,10 +23,6 @@ public class BotLogic : MonoBehaviour{
             Destroy(gameObject);
     }
 
-    void Start()
-    {
-        InvokeRepeating("MachineTurn", 0f, 0.2f);
-    }
     public void MachineTurn()
     {
         if (!game.playerTurn)
@@ -34,7 +30,8 @@ public class BotLogic : MonoBehaviour{
 
             if (field._binarField[1, 1] != 0)
             {
-                XYWeight theXYCoordForTurn = getMaxWeightXYWeight(CheckRow(), CheckColomn());
+                XYWeight theXYCoordForTurn = getMaxWeightXYWeight(CheckRow(),
+                          CheckColomn(), CheckMainDiagonal(), CheckSupportDiagonal());
                 PaintO(theXYCoordForTurn.xCoord, theXYCoordForTurn.yCoord);
             }
             else
@@ -44,12 +41,10 @@ public class BotLogic : MonoBehaviour{
         }
     }
 
-
     public void PaintO(int x, int y)
     {
         if (field._binarField[x, y] == 0 && game.playerTurn == false)
-        {
-            Debug.Log("X:Y = " + x + ":" + y + "");
+        { 
             field._binarField[x, y] = 2;
             game.playerTurn = true;
         }
@@ -64,8 +59,6 @@ public class BotLogic : MonoBehaviour{
             yCoord = y;
             weightValue = weight;
         }
-
-        
     }
 
     private XYWeight CheckRow()
@@ -124,7 +117,45 @@ public class BotLogic : MonoBehaviour{
         }
         ColumnXYWeight.xCoord = GetTheXPosition(ColumnXYWeight.yCoord);
         return ColumnXYWeight;
-        
+    }
+
+    private XYWeight CheckMainDiagonal()
+    {
+        int sumOfStepsX = 0, sumOfStepsO = 0;
+        XYWeight MainDiagonalWeight = new XYWeight(0, 0, 0);
+        for (int i = 0; i < 3; i++)
+        {
+            if (field._binarField[i, i] == 1)
+            {
+                sumOfStepsX++;
+            }
+            else if (field._binarField[i, i] == 2)
+            {
+                sumOfStepsO++;
+            }
+        }
+        MainDiagonalWeight = TheXYCordsAndWeihtForMainDiagonal(sumOfStepsX, sumOfStepsO);
+        return MainDiagonalWeight;
+    }
+    
+
+    private XYWeight CheckSupportDiagonal()
+    { 
+        int sumOfStepsX = 0, sumOfStepsO = 0, k =2;
+        XYWeight SupportDiagonalWeight = new XYWeight(0, 0, 0);
+        for (int i = 0; i <= k; i++)
+        {
+            if (field._binarField[i, k-i] == 1)
+            {
+                sumOfStepsX++;
+            }
+            else if (field._binarField[i, k-i] == 2)
+            {
+                sumOfStepsO++;
+            }
+        }
+        SupportDiagonalWeight = TheXYCordsAndWeihtForSupportDiagonal(sumOfStepsX, sumOfStepsO);
+        return SupportDiagonalWeight;
     }
 
 
@@ -157,18 +188,86 @@ public class BotLogic : MonoBehaviour{
         return 0;
     }
 
-    private XYWeight getMaxWeightXYWeight(XYWeight row, XYWeight column/*, XYWeight diagonal, XYWeight supportDiagonal*/) {
+    public XYWeight TheXYCordsAndWeihtForMainDiagonal(int sumOfStepsX, int sumOfStepsO)
+    {
+        XYWeight diagonal = new XYWeight(0, 0, 0);
+        int k = 2;
+        if (sumOfStepsX + sumOfStepsO < 3 && sumOfStepsX == 2)
+        { 
+            for (int j = 0; j <= k; j++)
+            {
+                if (field._binarField[j, j] == 0)
+                {
+                        diagonal.weightValue = sumOfStepsX;
+                        diagonal.xCoord = diagonal.yCoord = j;
+                        return diagonal;
+                }
+             }
+        }
+        return diagonal;
+    }
+    public XYWeight TheXYCordsAndWeihtForSupportDiagonal(int sumOfStepsX, int sumOfStepsO)
+    {
+        XYWeight diagonal = new XYWeight(0, 0, 0);
+        int k = 2;
+        if (sumOfStepsX + sumOfStepsO < 3 && sumOfStepsX == 2)
+        {
+            for (int j = 0; j <= k; j++)
+            {
+                if (field._binarField[j, k-j] == 0)
+                {
+                    diagonal.weightValue = sumOfStepsX;
+                    diagonal.xCoord = j;
+                    diagonal.yCoord = k - j;
+                    return diagonal;
+                }
+            }
+        }
+        return diagonal;
+    }
+
+    private XYWeight getMaxWeightXYWeight(XYWeight row, XYWeight column, XYWeight diagonal, XYWeight supportDiagonal)
+    {
         XYWeight max;
         max = row;
         if (max.weightValue < column.weightValue) {
             max = column;
         }
-        //if (max.weightValue < diagonal.weightValue) {
-        //    max = diagonal;
-        //}
-        //if (max.weightValue < supportDiagonal.weightValue) {
-        //    max = supportDiagonal;
-        //}
+        if (max.weightValue < diagonal.weightValue) {
+           max = diagonal;
+        }
+        if (max.weightValue < supportDiagonal.weightValue) {
+            max = supportDiagonal;
+        }
         return max;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

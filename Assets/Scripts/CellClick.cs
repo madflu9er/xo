@@ -9,7 +9,6 @@ public class CellClick : MonoBehaviour{
 
     public void ChangeImage()
     {
-        
         {
             Field field = Field.instanse;
             Game game = Game.instance;
@@ -20,7 +19,6 @@ public class CellClick : MonoBehaviour{
                 field._binarField[x / 3, x % 3] = 1;
                 game.playerTurn = false;
             }
-            
         }
     }
 }
